@@ -62,6 +62,8 @@ EOR
 
 /etc/init.d/dnsmasq restart
 
+export USER_NAME=${USER_NAME:-ubuntu}
+export USER_HOME=${USER_HOME:-/home/ubuntu}
 # Add ssh key trusts for manager user
 mkdir -p ${USER_HOME}/.ssh
 chown ${USER_NAME}.${USER_NAME} ${USER_HOME}/.ssh

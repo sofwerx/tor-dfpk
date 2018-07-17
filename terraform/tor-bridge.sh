@@ -63,6 +63,8 @@ EOR
 /etc/init.d/dnsmasq restart
 
 # Add ssh key trusts for manager user
+export USER_NAME=${USER_NAME:-ubuntu}
+export USER_HOME=${USER_HOME:-/home/ubuntu}
 mkdir -p ${USER_HOME}/.ssh
 chown ${USER_NAME}.${USER_NAME} ${USER_HOME}/.ssh
 chmod 700 ${USER_HOME}/.ssh
@@ -81,7 +83,7 @@ chown ${USER_NAME}.${USER_NAME} ${USER_HOME}/.ssh/authorized_keys
 chmod 600 ${USER_HOME}/.ssh/authorized_keys
 
 # Update and install Tor
-apt update 
-apt install tor
+apt-get update 
+DEBIAN_FRONTEND=noninteractive apt-get install -y tor
 
 # Useless comment
