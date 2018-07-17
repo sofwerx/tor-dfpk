@@ -81,4 +81,5 @@ chown ${USER_NAME}.${USER_NAME} ${USER_HOME}/.ssh/authorized_keys
 chmod 600 ${USER_HOME}/.ssh/authorized_keys
 
 # Update and install Tor
-apt update && apt install tor
+apt update 
+apt install tor
