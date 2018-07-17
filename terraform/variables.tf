@@ -113,8 +113,8 @@ variable linux_distro_version {
 }
 
 variable ssh_key_path {
-    description = "Path to ssh private key file"
-    default = "../../../secrets/ssh/sofwerx"
+    description = "Path to ssh public key file"
+    default = "sofwerx.pub"
 }
 
 variable ebs_root_volume_size {

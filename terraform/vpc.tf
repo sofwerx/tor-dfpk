@@ -189,7 +189,7 @@ resource "aws_iam_instance_profile" "iam_instance_profile" {
 
 resource "aws_key_pair" "ssh_key" {
   key_name = "${var.Project}-${var.Lifecycle}" 
-  public_key = "${file("${var.ssh_key_path}.pub")}"
+  public_key = "${file("${var.ssh_key_path}")}"
 }
 
 /* Allocate and assign static IP to TOR DA role instances */
