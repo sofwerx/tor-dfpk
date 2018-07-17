@@ -14,7 +14,7 @@ before_install:
 - curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
 - unzip /tmp/terraform.zip -d /tmp
 - chmod 755 /tmp/terraform
-- mkdir ~/bin
+- mkdir -p ~/bin
 - export PATH="~/bin:$PATH"
 - mv /tmp/terraform ~/bin/
 - cd terraform
