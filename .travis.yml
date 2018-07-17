@@ -16,11 +16,12 @@ env:
 
 before_install:
 - pip install awscli
-- wget https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
-- unzip terraform_0.11.7_linux_amd64.zip
-- chmod 755 terraform
+- wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
+- unzip terraform_0.11.7_linux_amd64.zip -d /tmp
+- chmod 755 /tmp/terraform
 - mkdir ~/bin
 - export PATH="~/bin:$PATH"
+- mv /tmp/terraform ~/bin/
 - cd terraform
 - ./tf.sh
 
