@@ -3,10 +3,6 @@ sudo: false
 dist: trusty
 python:
   - "2.7"
-addons:
-  apt:
-    packages:
-    - unzip
 env:
   # This environment variable tells Terraform not to prompt for input. This is
   # not required, but if we make a mistake, the Travis builder will hang waiting
