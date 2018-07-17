@@ -1,0 +1,35 @@
+language: python
+sudo: false 
+dist: trusty
+python:
+  - "2.7"
+addons:
+  apt:
+    packages:
+    - wget
+    - unzip
+env:
+  # This environment variable tells Terraform not to prompt for input. This is
+  # not required, but if we make a mistake, the Travis builder will hang waiting
+  # for user input, tieing up unnecessary resources.
+  - TF_INPUT=false
+
+before_install:
+- pip install awscli
+- wget https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
+- unzip terraform_0.11.7_linux_amd64.zip
+- chmod 755 terraform
+- mkdir ~/bin
+- export PATH="~/bin:$PATH"
+- cd terraform
+- ./tf.sh
+
+script:
+- terraform plan
+
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: terraform apply -auto-approve
+  on:
+    branch: master
