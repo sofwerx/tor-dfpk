@@ -84,7 +84,15 @@ chmod 600 ${USER_HOME}/.ssh/authorized_keys
 
 # Update and install Tor
 apt-get update 
-DEBIAN_FRONTEND=noninteractive apt-get install -y tor
+DEBIAN_FRONTEND=noninteractive apt-get install -y  apt-transport-https
+cat <<EOF > /etc/apt/sources.list.d/tor.list
+deb https://deb.torproject.org/torproject.org bionic main
+deb-src https://deb.torproject.org/torproject.org bionic main
+EOF
+apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
+apt-get update 
+DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
+
 
 # This is what is there by default
 cat <<EOF > /usr/share/tor/tor-service-defaults-torrc
