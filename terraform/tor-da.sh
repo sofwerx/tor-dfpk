@@ -113,6 +113,7 @@ Log notice syslog
 EOF
 
 # The /etc/tor/torrc is entirely commented out by default. Best not touch that.
+mkdir -p /etc/torrc.d
 
 # We should be putting our own scripts into /etc/torrc.d/ rather than updating the above "here documents".
 cat <<EOF > /etc/torrc.d/bridge.sh
