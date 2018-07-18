@@ -240,10 +240,15 @@ resource "aws_eip" "bridge" {
 data "template_file" "da" {
   count = "${var.tor_da_count}"
 
-  template = "${file("${path.module}/init.tpl")}"
+  template = "${file("tor-vpin.sh")}"
 
   vars {
+    role = "DA"
+    index = "${count.index}"
+    ip = "${element(aws_eip.da.*.public_ip, count.index)}"
     hostname = "da${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
   }
 }
 
@@ -257,14 +262,8 @@ data "template_cloudinit_config" "da" {
 
   # Setup hello world script to be called by the cloud-config
   part {
-    filename     = "init.cfg"
-    content_type = "text/part-handler"
-    content      = "${element(data.template_file.da.*.rendered, count.index)}"
-  }
-
-  part {
     content_type = "text/x-shellscript"
-    content      = "${file("tor-da.sh")}"
+    content      = "${element(data.template_file.da.*.rendered, count.index)}"
   }
 }
 
@@ -317,10 +316,15 @@ resource "aws_instance" "da" {
 data "template_file" "relay" {
   count = "${var.tor_relay_count}"
 
-  template = "${file("${path.module}/init.tpl")}"
+  template = "${file("tor-vpin.sh")}"
 
   vars {
+    role = "RELAY"
+    index = "${count.index}"
+    ip = ""
     hostname = "relay${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
   }
 }
 
@@ -334,14 +338,8 @@ data "template_cloudinit_config" "relay" {
 
   # Setup hello world script to be called by the cloud-config
   part {
-    filename     = "init.cfg"
-    content_type = "text/part-handler"
-    content      = "${element(data.template_file.relay.*.rendered, count.index)}"
-  }
-
-  part {
     content_type = "text/x-shellscript"
-    content      = "${file("tor-relay.sh")}"
+    content      = "${element(data.template_file.relay.*.rendered, count.index)}"
   }
 }
 
@@ -394,10 +392,15 @@ resource "aws_instance" "relay" {
 data "template_file" "exit" {
   count = "${var.tor_exit_count}"
 
-  template = "${file("${path.module}/init.tpl")}"
+  template = "${file("tor-vpin.sh")}"
 
   vars {
+    role = "EXIT"
+    index = "${count.index}"
+    ip = ""
     hostname = "exit${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
   }
 }
 
@@ -411,14 +414,13 @@ data "template_cloudinit_config" "exit" {
 
   # Setup hello world script to be called by the cloud-config
   part {
-    filename     = "init.cfg"
-    content_type = "text/part-handler"
+    content_type = "text/x-shellscript"
     content      = "${element(data.template_file.exit.*.rendered, count.index)}"
   }
 
   part {
     content_type = "text/x-shellscript"
-    content      = "${file("tor-exit.sh")}"
+    content      = "${file("tor-vpin.sh")}"
   }
 }
 
@@ -471,10 +473,15 @@ resource "aws_instance" "exit" {
 data "template_file" "bridge" {
   count = "${var.tor_bridge_count}"
 
-  template = "${file("${path.module}/init.tpl")}"
+  template = "${file("tor-vpin.sh")}"
 
   vars {
+    role = "BRIDGE"
+    index = "${count.index}"
+    ip = "${element(aws_eip.bridge.*.public_ip, count.index)}"
     hostname = "bridge${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
   }
 }
 
@@ -488,14 +495,8 @@ data "template_cloudinit_config" "bridge" {
 
   # Setup hello world script to be called by the cloud-config
   part {
-    filename     = "init.cfg"
-    content_type = "text/part-handler"
-    content      = "${element(data.template_file.bridge.*.rendered, count.index)}"
-  }
-
-  part {
     content_type = "text/x-shellscript"
-    content      = "${file("tor-bridge.sh")}"
+    content      = "${element(data.template_file.bridge.*.rendered, count.index)}"
   }
 }
 
@@ -539,7 +540,7 @@ resource "aws_instance" "bridge" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-bridge.sh")}"
+  user_data = "${file("tor-vpin.sh")}"
 }
 
 output "da_ipv4" {
