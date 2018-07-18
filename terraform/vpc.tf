@@ -417,11 +417,6 @@ data "template_cloudinit_config" "exit" {
     content_type = "text/x-shellscript"
     content      = "${element(data.template_file.exit.*.rendered, count.index)}"
   }
-
-  part {
-    content_type = "text/x-shellscript"
-    content      = "${file("tor-vpin.sh")}"
-  }
 }
 
 /* Create TOR EXIT role instances */
@@ -540,7 +535,7 @@ resource "aws_instance" "bridge" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-vpin.sh")}"
+  user_data = "${element(data.template_cloudinit_config.bridge.*.rendered, count.index)}"
 }
 
 output "da_ipv4" {
@@ -574,6 +569,4 @@ output "bridge_ipv4" {
 output "bridge_ipv6" {
   value = "${join(",", flatten(aws_instance.bridge.*.ipv6_addresses))}"
 }
-
-
 
