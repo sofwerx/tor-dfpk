@@ -234,6 +234,40 @@ resource "aws_eip" "bridge" {
   }
 }
 
+/* Prepare the user-data for DA */
+
+# Render a part using a `template_file`
+data "template_file" "da" {
+  count = "${var.tor_da_count}"
+
+  template = "${file("${path.module}/init.tpl")}"
+
+  vars {
+    hostname = "da${count.index}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "da" {
+  count = "${var.tor_da_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    filename     = "init.cfg"
+    content_type = "text/part-handler"
+    content      = "${element(data.template_file.da.*.rendered, count.index)}"
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${file("tor-da.sh")}"
+  }
+}
+
 /* Create TOR DA role instances */
 
 resource "aws_instance" "da" {
@@ -274,7 +308,41 @@ resource "aws_instance" "da" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-da.sh")}"
+  user_data = "${element(data.template_cloudinit_config.da.*.rendered, count.index)}"
+}
+
+/* Prepare the user-data for RELAY */
+
+# Render a part using a `template_file`
+data "template_file" "relay" {
+  count = "${var.tor_relay_count}"
+
+  template = "${file("${path.module}/init.tpl")}"
+
+  vars {
+    hostname = "relay${count.index}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "relay" {
+  count = "${var.tor_relay_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    filename     = "init.cfg"
+    content_type = "text/part-handler"
+    content      = "${element(data.template_file.relay.*.rendered, count.index)}"
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${file("tor-relay.sh")}"
+  }
 }
 
 /* Create TOR RELAY role instances */
@@ -317,7 +385,41 @@ resource "aws_instance" "relay" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-relay.sh")}"
+  user_data = "${element(data.template_cloudinit_config.relay.*.rendered, count.index)}"
+}
+
+/* Prepare the user-data for EXIT */
+
+# Render a part using a `template_file`
+data "template_file" "exit" {
+  count = "${var.tor_exit_count}"
+
+  template = "${file("${path.module}/init.tpl")}"
+
+  vars {
+    hostname = "exit${count.index}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "exit" {
+  count = "${var.tor_exit_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    filename     = "init.cfg"
+    content_type = "text/part-handler"
+    content      = "${element(data.template_file.exit.*.rendered, count.index)}"
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${file("tor-exit.sh")}"
+  }
 }
 
 /* Create TOR EXIT role instances */
@@ -360,7 +462,41 @@ resource "aws_instance" "exit" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-exit.sh")}"
+  user_data = "${element(data.template_cloudinit_config.exit.*.rendered, count.index)}"
+}
+
+/* Prepare the user-data for BRIDGE */
+
+# Render a part using a `template_file`
+data "template_file" "bridge" {
+  count = "${var.tor_bridge_count}"
+
+  template = "${file("${path.module}/init.tpl")}"
+
+  vars {
+    hostname = "bridge${count.index}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "bridge" {
+  count = "${var.tor_bridge_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    filename     = "init.cfg"
+    content_type = "text/part-handler"
+    content      = "${element(data.template_file.bridge.*.rendered, count.index)}"
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${file("tor-bridge.sh")}"
+  }
 }
 
 /* Create TOR BRIDGE role instances */
