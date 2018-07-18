@@ -276,6 +276,13 @@ EOF
     echo "Waiting for other DA's to come up..."
     ;;
 
+  BRIDGE)
+    echo "Setting role to BRIDGE"
+    echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
+    echo -e "Dirport $TOR_DIRPORT" > /etc/torrc.d/dirport
+    echo "Waiting for other DA's to come up..."
+    ;;
+
   EXIT)
     echo "Setting role to EXIT"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
@@ -302,5 +309,7 @@ EOF
     exit 1
     ;;
 esac
+
+fi
 
 systemctl restart tor
