@@ -107,7 +107,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
 # Sync down shared s3 bucket tor config tree
 apt-get install -y python-pip
 pip install awscli
-aws s3 sync s3://${s3_bucket}${TOR_DIR} $TOR_DIR/
+aws s3 sync s3://${s3_bucket}$TOR_DIR $TOR_DIR/
 
 # This is what is there by default
 cat <<EOF > /usr/share/tor/tor-service-defaults-torrc
