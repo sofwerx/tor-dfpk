@@ -546,6 +546,60 @@ resource "aws_instance" "bridge" {
   user_data = "${element(data.template_cloudinit_config.bridge.*.rendered, count.index)}"
 }
 
+/*
+resource "aws_s3_bucket" "config" {
+
+  region   = "${var.aws_region}"
+  bucket = "${var.s3_bucket}"
+  acl    = "private"
+
+  tags {
+    Name = "${var.Project}-${var.Lifecycle}-s3-config"
+    Project = "${var.Project}"
+    Lifecycle = "${var.Lifecycle}"
+  }
+}
+
+resource "aws_iam_policy" "iam_policy" {
+    name = "${var.Project}-${var.Lifecycle}-instance_policy"
+    path = "/"
+    description = "Platform IAM Policy"
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Id": "SOFWERXTORVPINBUCKETPOLICY",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:AbortMultipartUpload",
+        "s3:DeleteObject",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:GetObjectAcl",
+        "s3:ListBucket",
+        "s3:ListBucketMultipartUploads",
+        "s3:ListBucketVersions",
+        "s3:ListMultipartUploadParts",
+        "s3:PutObject",
+        "s3:PutObjectAcl",
+        "iam:PassRole",
+        "iam:ListInstanceProfiles"
+      ],
+      "Resource": ["${aws_s3_bucket.config.arn}"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "iam_policy_attachment" {
+    name = "${var.Project}-${var.Lifecycle}-policy_attach"
+    roles = ["${aws_iam_role.iam_role.name}"]
+    policy_arn = "${aws_iam_policy.iam_policy.arn}"
+}
+*/
+
 output "da_ipv4" {
   value = "${join(",", aws_eip.da.*.public_ip)}"
 }
