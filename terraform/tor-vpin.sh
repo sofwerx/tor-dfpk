@@ -26,7 +26,7 @@ sudo dhclient -6
 ## Install some extra things
 sudo apt-get update
 export DEBIAN_FRONTEND=noninteractive
-sudo -E apt-get install -y fail2ban dnsmasq
+sudo -E apt-get install -y fail2ban dnsmasq curl
 
 # Deal with AWS split-horizon DNS and using both IPV4 and IPV6 DNS servers
 
@@ -103,6 +103,11 @@ EOF
 apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
 apt-get update 
 DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
+
+# Sync down shared s3 bucket tor config tree
+apt-get install -y python-pip
+pip install awscli
+aws s3 sync s3://${s3_bucket}${TOR_DIR} $TOR_DIR/
 
 # This is what is there by default
 cat <<EOF > /usr/share/tor/tor-service-defaults-torrc
@@ -182,20 +187,18 @@ EOF
 export TOR_NICK=${role}${index}
 echo "Setting Nickname: $TOR_NICK"
 echo -e "\nNickname $TOR_NICK" > /etc/torrc.d/nickname
-
-# Host specific modifications to the torrc file
 mkdir -p $TOR_DIR/$TOR_NICK
 echo -e "DataDirectory $TOR_DIR/$TOR_NICK" > /etc/torrc.d/datadirectory
 TOR_IP=${ip}
+if [ -z "$TOR_IP" ] ; then
+  TOR_IP=$PUBLIC_IPV4
+fi
 echo "Address $TOR_IP" > /etc/torrc.d/address
 echo -e "ControlPort 0.0.0.0:9051" > /etc/torrc.d/controlport
 if [  -z "$TOR_CONTROL_PWD" ]; then
   TOR_CONTROL_PWD="16:6971539E06A0F94C6011414768D85A25949AE1E201BDFE10B27F3B3EBA"
 fi
 echo -e "HashedControlPassword $TOR_CONTROL_PWD" > /etc/torrc.d/hashedcontrolpassword
-
-if [ ! -e /tor-config-done ]; then
-    touch /tor-config-done   # only run this once
 
 # Each role has a set of differences
 case ${role} in
@@ -246,6 +249,7 @@ EOF
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
 
+    # TODO: Deal with securely handling the identity key
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
     mkdir -p $KEYPATH
     echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
@@ -310,9 +314,8 @@ EOF
     ;;
 esac
 
-fi
+# Push back up s3 bucket config directory for this tor node
+aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
 
 systemctl restart tor
 
-apt-get install -y python-pip
-pip install awscli

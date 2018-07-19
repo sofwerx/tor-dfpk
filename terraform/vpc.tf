@@ -251,6 +251,7 @@ data "template_file" "da" {
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
     tor_daport = "${var.tor_daport}"
     tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
   }
 }
 
@@ -329,6 +330,7 @@ data "template_file" "relay" {
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
     tor_daport = "${var.tor_daport}"
     tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
   }
 }
 
@@ -407,6 +409,7 @@ data "template_file" "exit" {
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
     tor_daport = "${var.tor_daport}"
     tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
   }
 }
 
@@ -485,6 +488,7 @@ data "template_file" "bridge" {
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
     tor_daport = "${var.tor_daport}"
     tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
   }
 }
 
