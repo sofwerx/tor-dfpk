@@ -5,8 +5,8 @@ echo "${da_hosts}" > /etc/tor/da_hosts
 echo "${bridge_hosts}" > /etc/tor/bridge_hosts
 hostnamectl set-hostname "${hostname}"
 
-TOR_ORPORT=9030
-TOR_DIRPORT=7000
+TOR_ORPORT=${tor_orport}
+TOR_DAPORT=${tor_daport}
 TOR_DIR=/etc/tor
 TOR_HS_PORT=80
 TOR_HS_ADDR=127.0.0.1
@@ -243,12 +243,12 @@ V3AuthDistDelay 5
 EOF
 
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DIRPORT" > /etc/torrc.d/dirport
+    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
 
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
     mkdir -p $KEYPATH
-    echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DIRPORT \
+    echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
             -i $KEYPATH/authority_identity_key \
             -s $KEYPATH/authority_signing_key \
             -c $KEYPATH/authority_certificate \
@@ -271,7 +271,7 @@ EOF
   RELAY)
     echo "Setting role to RELAY"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DIRPORT" > /etc/torrc.d/dirport
+    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;
@@ -279,14 +279,14 @@ EOF
   BRIDGE)
     echo "Setting role to BRIDGE"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DIRPORT" > /etc/torrc.d/dirport
+    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo "Waiting for other DA's to come up..."
     ;;
 
   EXIT)
     echo "Setting role to EXIT"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DIRPORT" > /etc/torrc.d/dirport
+    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;

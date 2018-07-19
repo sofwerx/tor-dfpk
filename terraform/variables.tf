@@ -146,3 +146,13 @@ variable s3_bucket {
     description = "s3 bucket to use for service discovery"
     default = "sofwerx-tor-vpin"
 }
+
+variable tor_daport {
+    description = "TOR Directory Authority Port"
+    default = "7000"
+}
+
+variable tor_orport {
+    description = "TOR Onion Router Port"
+    default = "9030"
+}

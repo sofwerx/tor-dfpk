@@ -104,8 +104,8 @@ resource "aws_security_group_rule" "sg_ingress_ssh" {
 
 resource "aws_security_group_rule" "sg_ingress_da" {
     type = "ingress"
-    from_port = 7000
-    to_port = 7000
+    from_port = "${var.tor_daport}"
+    to_port = "${var.tor_daport}"
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
@@ -115,8 +115,8 @@ resource "aws_security_group_rule" "sg_ingress_da" {
 
 resource "aws_security_group_rule" "sg_ingress_relay" {
     type = "ingress"
-    from_port = 9030
-    to_port = 9030
+    from_port = "${var.tor_orport}"
+    to_port = "${var.tor_orport}"
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
@@ -249,6 +249,8 @@ data "template_file" "da" {
     hostname = "da${count.index}"
     da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
   }
 }
 
@@ -325,6 +327,8 @@ data "template_file" "relay" {
     hostname = "relay${count.index}"
     da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
   }
 }
 
@@ -401,6 +405,8 @@ data "template_file" "exit" {
     hostname = "exit${count.index}"
     da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
   }
 }
 
@@ -477,6 +483,8 @@ data "template_file" "bridge" {
     hostname = "bridge${count.index}"
     da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
     bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
   }
 }
 
