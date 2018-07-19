@@ -546,8 +546,12 @@ resource "aws_instance" "bridge" {
   user_data = "${element(data.template_cloudinit_config.bridge.*.rendered, count.index)}"
 }
 
-/*
-resource "aws_s3_bucket" "config" {
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "${aws_s3_bucket.bucket.id}"
+
+}
+
+resource "aws_s3_bucket" "bucket" {
 
   region   = "${var.aws_region}"
   bucket = "${var.s3_bucket}"
@@ -586,7 +590,7 @@ resource "aws_iam_policy" "iam_policy" {
         "iam:PassRole",
         "iam:ListInstanceProfiles"
       ],
-      "Resource": ["${aws_s3_bucket.config.arn}"]
+      "Resource": ["${aws_s3_bucket.bucket.arn}"]
     }
   ]
 }
@@ -598,7 +602,6 @@ resource "aws_iam_policy_attachment" "iam_policy_attachment" {
     roles = ["${aws_iam_role.iam_role.name}"]
     policy_arn = "${aws_iam_policy.iam_policy.arn}"
 }
-*/
 
 output "da_ipv4" {
   value = "${join(",", aws_eip.da.*.public_ip)}"
