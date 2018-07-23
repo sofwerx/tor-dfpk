@@ -1,5 +1,7 @@
 # tor-vpin terraform
 
+[![Build Status](https://travis-ci.org/sofwerx/tor-vpin.svg?branch=master)](https://travis-ci.org/sofwerx/tor-vpin)
+
 This is a deployment of AWS instances that comprise the various tiers of a private tor network
 
 # Note:
