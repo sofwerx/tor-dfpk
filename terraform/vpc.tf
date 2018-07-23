@@ -104,8 +104,8 @@ resource "aws_security_group_rule" "sg_ingress_ssh" {
 
 resource "aws_security_group_rule" "sg_ingress_da" {
     type = "ingress"
-    from_port = 7000
-    to_port = 7000
+    from_port = "${var.tor_daport}"
+    to_port = "${var.tor_daport}"
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
@@ -115,8 +115,8 @@ resource "aws_security_group_rule" "sg_ingress_da" {
 
 resource "aws_security_group_rule" "sg_ingress_relay" {
     type = "ingress"
-    from_port = 9030
-    to_port = 9030
+    from_port = "${var.tor_orport}"
+    to_port = "${var.tor_orport}"
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
@@ -234,6 +234,42 @@ resource "aws_eip" "bridge" {
   }
 }
 
+/* Prepare the user-data for DA */
+
+# Render a part using a `template_file`
+data "template_file" "da" {
+  count = "${var.tor_da_count}"
+
+  template = "${file("tor-vpin.sh")}"
+
+  vars {
+    role = "DA"
+    index = "${count.index}"
+    ip = "${element(aws_eip.da.*.public_ip, count.index)}"
+    hostname = "da${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "da" {
+  count = "${var.tor_da_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${element(data.template_file.da.*.rendered, count.index)}"
+  }
+}
+
 /* Create TOR DA role instances */
 
 resource "aws_instance" "da" {
@@ -274,7 +310,43 @@ resource "aws_instance" "da" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-da.sh")}"
+  user_data = "${element(data.template_cloudinit_config.da.*.rendered, count.index)}"
+}
+
+/* Prepare the user-data for RELAY */
+
+# Render a part using a `template_file`
+data "template_file" "relay" {
+  count = "${var.tor_relay_count}"
+
+  template = "${file("tor-vpin.sh")}"
+
+  vars {
+    role = "RELAY"
+    index = "${count.index}"
+    ip = ""
+    hostname = "relay${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "relay" {
+  count = "${var.tor_relay_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${element(data.template_file.relay.*.rendered, count.index)}"
+  }
 }
 
 /* Create TOR RELAY role instances */
@@ -317,7 +389,43 @@ resource "aws_instance" "relay" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-relay.sh")}"
+  user_data = "${element(data.template_cloudinit_config.relay.*.rendered, count.index)}"
+}
+
+/* Prepare the user-data for EXIT */
+
+# Render a part using a `template_file`
+data "template_file" "exit" {
+  count = "${var.tor_exit_count}"
+
+  template = "${file("tor-vpin.sh")}"
+
+  vars {
+    role = "EXIT"
+    index = "${count.index}"
+    ip = ""
+    hostname = "exit${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "exit" {
+  count = "${var.tor_exit_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${element(data.template_file.exit.*.rendered, count.index)}"
+  }
 }
 
 /* Create TOR EXIT role instances */
@@ -360,7 +468,43 @@ resource "aws_instance" "exit" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-exit.sh")}"
+  user_data = "${element(data.template_cloudinit_config.exit.*.rendered, count.index)}"
+}
+
+/* Prepare the user-data for BRIDGE */
+
+# Render a part using a `template_file`
+data "template_file" "bridge" {
+  count = "${var.tor_bridge_count}"
+
+  template = "${file("tor-vpin.sh")}"
+
+  vars {
+    role = "BRIDGE"
+    index = "${count.index}"
+    ip = "${element(aws_eip.bridge.*.public_ip, count.index)}"
+    hostname = "bridge${count.index}"
+    da_hosts = "${join(",", aws_eip.da.*.public_ip)}"
+    bridge_hosts = "${join(",", aws_eip.bridge.*.public_ip)}"
+    tor_daport = "${var.tor_daport}"
+    tor_orport = "${var.tor_orport}"
+    s3_bucket = "${var.s3_bucket}"
+  }
+}
+
+# Render a multi-part cloudinit config making use of the part
+# above, and other source files
+data "template_cloudinit_config" "bridge" {
+  count = "${var.tor_bridge_count}"
+
+  gzip          = true
+  base64_encode = true
+
+  # Setup hello world script to be called by the cloud-config
+  part {
+    content_type = "text/x-shellscript"
+    content      = "${element(data.template_file.bridge.*.rendered, count.index)}"
+  }
 }
 
 /* Create TOR BRIDGE role instances */
@@ -403,7 +547,64 @@ resource "aws_instance" "bridge" {
     Project = "${var.Project}"
     Lifecycle = "${var.Lifecycle}"
   }
-  user_data = "${file("tor-bridge.sh")}"
+  user_data = "${element(data.template_cloudinit_config.bridge.*.rendered, count.index)}"
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "${aws_s3_bucket.bucket.id}"
+
+}
+
+resource "aws_s3_bucket" "bucket" {
+
+  region   = "${var.aws_region}"
+  bucket = "${var.s3_bucket}"
+  acl    = "private"
+
+  tags {
+    Name = "${var.Project}-${var.Lifecycle}-s3-config"
+    Project = "${var.Project}"
+    Lifecycle = "${var.Lifecycle}"
+  }
+}
+
+resource "aws_iam_policy" "iam_policy" {
+    name = "${var.Project}-${var.Lifecycle}-instance_policy"
+    path = "/"
+    description = "Platform IAM Policy"
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Id": "SOFWERXTORVPINBUCKETPOLICY",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:AbortMultipartUpload",
+        "s3:DeleteObject",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:GetObjectAcl",
+        "s3:ListBucket",
+        "s3:ListBucketMultipartUploads",
+        "s3:ListBucketVersions",
+        "s3:ListMultipartUploadParts",
+        "s3:PutObject",
+        "s3:PutObjectAcl",
+        "iam:PassRole",
+        "iam:ListInstanceProfiles"
+      ],
+      "Resource": ["${aws_s3_bucket.bucket.arn}"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "iam_policy_attachment" {
+    name = "${var.Project}-${var.Lifecycle}-policy_attach"
+    roles = ["${aws_iam_role.iam_role.name}"]
+    policy_arn = "${aws_iam_policy.iam_policy.arn}"
 }
 
 output "da_ipv4" {
@@ -437,6 +638,4 @@ output "bridge_ipv4" {
 output "bridge_ipv6" {
   value = "${join(",", flatten(aws_instance.bridge.*.ipv6_addresses))}"
 }
-
-
 
