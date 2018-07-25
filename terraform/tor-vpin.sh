@@ -250,17 +250,20 @@ EOF
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
 
     # TODO: Deal with securely handling the identity key
-    KEYPATH=$TOR_DIR/$TOR_NICK/keys
-    mkdir -p $KEYPATH
-    echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
+    if [ -e authority_identity_key && -e authority_signing_key && -e authority_certificate ]
+    then
+    	KEYPATH=$TOR_DIR/$TOR_NICK/keys
+    	mkdir -p $KEYPATH
+    	echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
             -i $KEYPATH/authority_identity_key \
             -s $KEYPATH/authority_signing_key \
             -c $KEYPATH/authority_certificate \
 	    --passphrase-fd 0
-    tor --list-fingerprint --orport 1 \
+    	tor --list-fingerprint --orport 1 \
     	    --dirserver "x 127.0.0.1:1 ffffffffffffffffffffffffffffffffffffffff" \
 	    --datadirectory $TOR_DIR/$TOR_NICK
-    echo "Saving DA fingerprint to shared path"
+    	echo "Saving DA fingerprint to shared path"
+    fi
 
     AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
     NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
