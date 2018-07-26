@@ -265,27 +265,7 @@ EOF
     	echo "Saving DA fingerprint to shared path"
     fi
 
-    AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
-    NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
-    RELAY=$(cat $TOR_DIR/$TOR_NICK/fingerprint|awk -F " " '{print $2}')
-    SERVICE=$(grep "dir-address" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
-    IPADDR=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
-    TORRC="DirAuthority $TOR_NICK orport=$TOR_ORPORT no-v2 v3ident=$AUTH $SERVICE  $RELAY"
-    #echo $TORRC > /etc/torrc.d/dirauthority
-    
-    case ${index} in
-    0)
-       DA0=$TORRC
-    ;;
-
-    1)
-       DA1=$TORRC
-    ;;
-
-    echo $DA0 > /etc/torrc.d/dirauthority
-    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
-    ;;
 
   RELAY)
     echo "Setting role to RELAY"
@@ -338,6 +318,17 @@ EOF
     exit 1
     ;;
 esac
+
+# Define the DAs on _every_ node
+ls -1d $TOR_DIR/DA* | while read DA_DIR ; do
+  TOR_NICK=$(basename $DA_DIR)
+  AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
+  NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
+  RELAY=$(cat $TOR_DIR/$TOR_NICK/fingerprint|awk -F " " '{print $2}')
+  SERVICE=$(grep "dir-address" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
+  TORRC="DirAuthority $TOR_NICK orport=$TOR_ORPORT no-v2 v3ident=$AUTH $SERVICE  $RELAY"
+  echo $TORRC > /etc/torrc.d/$TOR_NICK
+done
 
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
