@@ -251,7 +251,7 @@ EOF
 
     # TODO: Deal with securely handling the identity key
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
-    if [ !(-e $KEYPATH/authority_identity_key) && !(-e $KEYPATH/authority_signing_key) && !(-e $KEYPATH/authority_certificate) ]
+    if [ !(-e $KEYPATH/authority_identity_key && -e $KEYPATH/authority_signing_key && -e $KEYPATH/authority_certificate) ]
     then
     	mkdir -p $KEYPATH
     	echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
