@@ -272,6 +272,16 @@ EOF
     IPADDR=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
     TORRC="DirAuthority $TOR_NICK orport=$TOR_ORPORT no-v2 v3ident=$AUTH $SERVICE  $RELAY"
     echo $TORRC > /etc/torrc.d/dirauthority
+    
+    case ${index} in
+    0)
+       DA0=$TORRC
+    ;;
+
+    1)
+       DA1=$TORRC
+    ;;
+
     echo "Waiting for other DA's to come up..."
     ;;
 
@@ -280,13 +290,19 @@ EOF
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
+    echo $DA0 > /etc/torrc.d/dirauthority
+    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
     ;;
 
   BRIDGE)
     echo "Setting role to BRIDGE"
+    echo -e "BridgeRelay 1" > /etc/torrc.d/bridge
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
+    echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
+    echo $DA0 > /etc/torrc.d/dirauthority
+    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
     ;;
 
@@ -295,12 +311,16 @@ EOF
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
+    echo $DA0 > /etc/torrc.d/dirauthority
+    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
     ;;
 
   CLIENT)
     echo "Setting role to CLIENT"
     echo -e "SOCKSPort 0.0.0.0:9050" > /etc/torrc.d/socksport
+    echo $DA0 > /etc/torrc.d/dirauthority
+    echo $DA1 > /etc/torrc.d/dirauthority
     ;;
   HS)
     # NOTE By default the HS role will point to a service running on port 80
