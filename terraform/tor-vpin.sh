@@ -271,7 +271,7 @@ EOF
     SERVICE=$(grep "dir-address" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
     IPADDR=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
     TORRC="DirAuthority $TOR_NICK orport=$TOR_ORPORT no-v2 v3ident=$AUTH $SERVICE  $RELAY"
-    echo $TORRC > /etc/torrc.d/dirauthority
+    #echo $TORRC > /etc/torrc.d/dirauthority
     
     case ${index} in
     0)
@@ -282,6 +282,8 @@ EOF
        DA1=$TORRC
     ;;
 
+    echo $DA0 > /etc/torrc.d/dirauthority
+    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
     ;;
 
