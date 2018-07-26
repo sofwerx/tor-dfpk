@@ -250,9 +250,9 @@ EOF
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
 
     # TODO: Deal with securely handling the identity key
-    if [ -e authority_identity_key && -e authority_signing_key && -e authority_certificate ]
+    KEYPATH=$TOR_DIR/$TOR_NICK/keys
+    if [ !(-e $KEYPATH/authority_identity_key) && !(-e $KEYPATH/authority_signing_key) && !(-e $KEYPATH/authority_certificate) ]
     then
-    	KEYPATH=$TOR_DIR/$TOR_NICK/keys
     	mkdir -p $KEYPATH
     	echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
             -i $KEYPATH/authority_identity_key \
