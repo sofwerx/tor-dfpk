@@ -1,6 +1,17 @@
 #!/bin/bash
 
+(
 export DEBIAN_FRONTEND=noninteractive
+
+# Update the package index
+apt-get update
+
+# Force an ntp sync
+apt-get install -y ntpdate
+ntpdate pool.ntp.org
+
+# Install ntp service to keep this instance on time
+apt-get install -y ntp
 
 # These variables are filled in by the terraform templater at render time
 echo "${da_hosts}" > /etc/tor/da_hosts
@@ -24,6 +35,7 @@ PRIVATE_IPV4="$(curl -qs http://169.254.169.254/latest/meta-data/local-ipv4)"
 mac=$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/ | head -1 | cut -d/ -f1)
 PUBLIC_IPV6=$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/$mac/ipv6s | head -1 | cut -d: -f1-4)
 
+mkdir -p /etc/network/interfaces.d
 echo "iface eth0 inet6 dhcp" > /etc/network/interfaces.d/60-default-with-ipv6.cfg
 sudo dhclient -6
 
@@ -104,7 +116,8 @@ cat <<EOF > /etc/apt/sources.list.d/tor.list
 deb https://deb.torproject.org/torproject.org bionic main
 deb-src https://deb.torproject.org/torproject.org bionic main
 EOF
-apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
+apt-key adv --recv-keys 74A941BA219EC810 --keyserver keyserver.ubuntu.com || \
+apt-key adv --recv-keys 74A941BA219EC810 --keyserver keys.gnupg.net
 apt-get update 
 DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
 
@@ -266,7 +279,7 @@ EOF
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
     if ! [ -e $KEYPATH/authority_identity_key ] || \
        ! [ -e $KEYPATH/authority_signing_key ] || \
-       ! [ -e $KEYPATH/authority_certificate) ]
+       ! [ -e $KEYPATH/authority_certificate ]
     then
     	mkdir -p $KEYPATH
     	echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
@@ -281,6 +294,7 @@ EOF
     fi
 
     echo "Waiting for other DA's to come up..."
+    ;;
 
   RELAY)
     echo "Setting role to RELAY"
@@ -350,3 +364,4 @@ aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
 
 systemctl restart tor
 
+) 2>&1 | tee /tmp/tor-vpin.log
