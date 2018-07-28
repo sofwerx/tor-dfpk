@@ -149,10 +149,10 @@ variable s3_bucket {
 
 variable tor_daport {
     description = "TOR Directory Authority Port"
-    default = "7000"
+    default = "17000"
 }
 
 variable tor_orport {
     description = "TOR Onion Router Port"
-    default = "9030"
+    default = "19030"
 }

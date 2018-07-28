@@ -14,9 +14,11 @@ ntpdate pool.ntp.org
 apt-get install -y ntp
 
 # These variables are filled in by the terraform templater at render time
+mkdir -p /etc/tor
 echo "${da_hosts}" > /etc/tor/da_hosts
 echo "${bridge_hosts}" > /etc/tor/bridge_hosts
 hostnamectl set-hostname "${hostname}"
+sed -e "s/localhost$/localhost $(hostname)/" -i /etc/hosts
 
 TOR_ORPORT=${tor_orport}
 TOR_DAPORT=${tor_daport}
@@ -116,8 +118,8 @@ cat <<EOF > /etc/apt/sources.list.d/tor.list
 deb https://deb.torproject.org/torproject.org bionic main
 deb-src https://deb.torproject.org/torproject.org bionic main
 EOF
-apt-key adv --recv-keys 74A941BA219EC810 --keyserver keyserver.ubuntu.com || \
-apt-key adv --recv-keys 74A941BA219EC810 --keyserver keys.gnupg.net
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 74A941BA219EC810 || \
+apt-key adv --keyserver keys.gnupg.net --recv-keys 74A941BA219EC810
 apt-get update 
 DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
 
