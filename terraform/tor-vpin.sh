@@ -295,7 +295,7 @@ EOF
     	echo "Saving DA fingerprint to shared path"
     fi
 
-    echo "Waiting for other DA's to come up..."
+    sed -i -e 's/^dir-address .*$/dir-address '$PUBLIC_IP':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
     ;;
 
   RELAY)
@@ -303,9 +303,6 @@ EOF
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
-    echo $DA0 > /etc/torrc.d/dirauthority
-    echo $DA1 > /etc/torrc.d/dirauthority
-    echo "Waiting for other DA's to come up..."
     ;;
 
   BRIDGE)
@@ -314,8 +311,6 @@ EOF
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
-    echo $DA0 > /etc/torrc.d/dirauthority
-    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
     ;;
 
@@ -324,16 +319,12 @@ EOF
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
-    echo $DA0 > /etc/torrc.d/dirauthority
-    echo $DA1 > /etc/torrc.d/dirauthority
     echo "Waiting for other DA's to come up..."
     ;;
 
   CLIENT)
     echo "Setting role to CLIENT"
     echo -e "SOCKSPort 0.0.0.0:9050" > /etc/torrc.d/socksport
-    echo $DA0 > /etc/torrc.d/dirauthority
-    echo $DA1 > /etc/torrc.d/dirauthority
     ;;
   HS)
     # NOTE By default the HS role will point to a service running on port 80
@@ -364,10 +355,16 @@ done
 # Generate the torrc file that a client would use to connect
 (
   cat /etc/tor/DA*
+  cat <<EOF
+SOCKSPort 0.0.0.0:9050
+EOF
 ) > /etc/tor/torrc.client
 
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
+
+# Push back the torrc client config
+aws s3 cp /etc/tor/torrc.client s3://${s3_bucket}/torrc.client
 
 systemctl restart tor
 
