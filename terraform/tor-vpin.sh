@@ -361,6 +361,11 @@ ls -1d $TOR_DIR/DA* | while read DA_DIR ; do
   echo $TORRC > /etc/torrc.d/$TOR_NICK
 done
 
+# Generate the torrc file that a client would use to connect
+(
+  cat /etc/tor/DA*
+) > /etc/tor/torrc.client
+
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
 
