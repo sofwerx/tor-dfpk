@@ -301,7 +301,7 @@ resource "aws_instance" "da" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
@@ -380,7 +380,7 @@ resource "aws_instance" "relay" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
@@ -459,7 +459,7 @@ resource "aws_instance" "exit" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
@@ -538,7 +538,7 @@ resource "aws_instance" "bridge" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
