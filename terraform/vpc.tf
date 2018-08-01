@@ -550,11 +550,6 @@ resource "aws_instance" "bridge" {
   user_data = "${element(data.template_cloudinit_config.bridge.*.rendered, count.index)}"
 }
 
-resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
-
-}
-
 resource "aws_s3_bucket" "bucket" {
 
   region   = "${var.aws_region}"
@@ -579,32 +574,57 @@ resource "aws_iam_policy" "iam_policy" {
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "s3:AbortMultipartUpload",
-        "s3:DeleteObject",
-        "s3:GetBucketLocation",
-        "s3:GetObject",
-        "s3:GetObjectAcl",
-        "s3:ListBucket",
-        "s3:ListBucketMultipartUploads",
-        "s3:ListBucketVersions",
-        "s3:ListMultipartUploadParts",
-        "s3:PutObject",
-        "s3:PutObjectAcl",
-        "iam:PassRole",
-        "iam:ListInstanceProfiles"
-      ],
+      "Action": ["s3:ListBucket"],
       "Resource": ["${aws_s3_bucket.bucket.arn}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": ["${aws_s3_bucket.bucket.arn}/*"]
     }
   ]
 }
 EOF
 }
 
+data "aws_iam_policy_document" "lock_it_down" {
+  statement {
+    sid = "AllowReadFromVPC"
+    effect = "Allow"
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ],
+    resources = [
+      "${aws_s3_bucket.bucket.arn}",
+      "${aws_s3_bucket.bucket.arn}/*"
+    ]
+    condition {
+      test = "StringEquals"
+      variable = "aws:sourceVpc"
+      values = ["${aws_vpc.vpc.id}"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "bucket" {
+  bucket = "${aws_s3_bucket.bucket.bucket}"
+  policy = "${data.aws_iam_policy_document.lock_it_down.json}"
+}
+
 resource "aws_iam_policy_attachment" "iam_policy_attachment" {
-    name = "${var.Project}-${var.Lifecycle}-policy_attach"
-    roles = ["${aws_iam_role.iam_role.name}"]
-    policy_arn = "${aws_iam_policy.iam_policy.arn}"
+  name = "${var.Project}-${var.Lifecycle}-policy_attach"
+  roles = ["${aws_iam_role.iam_role.name}"]
+  policy_arn = "${aws_iam_policy.iam_policy.arn}"
 }
 
 output "da_ipv4" {

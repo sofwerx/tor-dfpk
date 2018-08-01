@@ -1,9 +1,24 @@
 #!/bin/bash
 
+(
+export DEBIAN_FRONTEND=noninteractive
+
+# Update the package index
+apt-get update
+
+# Force an ntp sync
+apt-get install -y ntpdate
+ntpdate pool.ntp.org
+
+# Install ntp service to keep this instance on time
+apt-get install -y ntp
+
 # These variables are filled in by the terraform templater at render time
+mkdir -p /etc/tor
 echo "${da_hosts}" > /etc/tor/da_hosts
 echo "${bridge_hosts}" > /etc/tor/bridge_hosts
 hostnamectl set-hostname "${hostname}"
+sed -e "s/localhost$/localhost $(hostname)/" -i /etc/hosts
 
 TOR_ORPORT=${tor_orport}
 TOR_DAPORT=${tor_daport}
@@ -11,7 +26,9 @@ TOR_DIR=/etc/tor
 TOR_HS_PORT=80
 TOR_HS_ADDR=127.0.0.1
 
-export DEBIAN_FRONTEND=noninteractive
+export TOR_NICK=${role}${index}
+echo "Setting Nickname: $TOR_NICK"
+echo -e "\nNickname $TOR_NICK" > /etc/torrc.d/nickname
 
 ## Discover public and private IPv4 addresses for this instance
 PUBLIC_IPV4="$(curl -qs http://169.254.169.254/latest/meta-data/public-ipv4)"
@@ -20,6 +37,7 @@ PRIVATE_IPV4="$(curl -qs http://169.254.169.254/latest/meta-data/local-ipv4)"
 mac=$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/ | head -1 | cut -d/ -f1)
 PUBLIC_IPV6=$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/$mac/ipv6s | head -1 | cut -d: -f1-4)
 
+mkdir -p /etc/network/interfaces.d
 echo "iface eth0 inet6 dhcp" > /etc/network/interfaces.d/60-default-with-ipv6.cfg
 sudo dhclient -6
 
@@ -100,16 +118,29 @@ cat <<EOF > /etc/apt/sources.list.d/tor.list
 deb https://deb.torproject.org/torproject.org bionic main
 deb-src https://deb.torproject.org/torproject.org bionic main
 EOF
-apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 74A941BA219EC810 || \
+apt-key adv --keyserver keys.gnupg.net --recv-keys 74A941BA219EC810
 apt-get update 
 DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
 
-# Sync down shared s3 bucket tor config tree
+# Install aws cli tool
 apt-get install -y python-pip
 pip install awscli
+
+# Sync down shared s3 bucket tor config tree
 aws s3 sync s3://${s3_bucket}$TOR_DIR $TOR_DIR/
 
-# This is what is there by default
+mkdir -p $TOR_DIR/$TOR_NICK
+
+# Extract or package up the ssh host keys for ssh known_hosts sanity later
+if [ -f $TOR_DIR/$TOR_NICK/ssh.tar.bz2 ] ; then
+  tar xjf $TOR_DIR/$TOR_NICK/ssh.tar.bz2 -C /etc/ssh .
+  systemctl restart ssh
+else
+  tar cjf $TOR_DIR/$TOR_NICK/ssh.tar.bz2 -C /etc/ssh .
+fi
+
+# This is the tor defaults file that we want to remain untouched
 cat <<EOF > /usr/share/tor/tor-service-defaults-torrc
 DataDirectory /var/lib/tor
 PidFile /var/run/tor/tor.pid
@@ -129,9 +160,10 @@ Log notice syslog
 EOF
 
 # The /etc/tor/torrc is entirely commented out by default. Best not touch that.
+# That file includes files in the /etc/torrc.d directory tree, so let's use that instead.
 mkdir -p /etc/torrc.d
 
-# This is the base config shared by all nodes
+# This is our base config shared by all nodes
 
 cat <<EOF > /etc/torrc.d/base
 # Run Tor as a regular user (do not change this)
@@ -184,10 +216,6 @@ DisableDebuggerAttachment 0
 #DirPortFrontPage /usr/share/doc/tor/tor-exit-notice.html
 EOF
 
-export TOR_NICK=${role}${index}
-echo "Setting Nickname: $TOR_NICK"
-echo -e "\nNickname $TOR_NICK" > /etc/torrc.d/nickname
-mkdir -p $TOR_DIR/$TOR_NICK
 echo -e "DataDirectory $TOR_DIR/$TOR_NICK" > /etc/torrc.d/datadirectory
 TOR_IP=${ip}
 if [ -z "$TOR_IP" ] ; then
@@ -251,25 +279,23 @@ EOF
 
     # TODO: Deal with securely handling the identity key
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
-    mkdir -p $KEYPATH
-    echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
+    if ! [ -e $KEYPATH/authority_identity_key ] || \
+       ! [ -e $KEYPATH/authority_signing_key ] || \
+       ! [ -e $KEYPATH/authority_certificate ]
+    then
+    	mkdir -p $KEYPATH
+    	echo "password" | tor-gencert --create-identity-key -m 12 -a $TOR_IP:$TOR_DAPORT \
             -i $KEYPATH/authority_identity_key \
             -s $KEYPATH/authority_signing_key \
             -c $KEYPATH/authority_certificate \
 	    --passphrase-fd 0
-    tor --list-fingerprint --orport 1 \
+    	tor --list-fingerprint --orport 1 \
     	    --dirserver "x 127.0.0.1:1 ffffffffffffffffffffffffffffffffffffffff" \
 	    --datadirectory $TOR_DIR/$TOR_NICK
-    echo "Saving DA fingerprint to shared path"
+    	echo "Saving DA fingerprint to shared path"
+    fi
 
-    AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
-    NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
-    RELAY=$(cat $TOR_DIR/$TOR_NICK/fingerprint|awk -F " " '{print $2}')
-    SERVICE=$(grep "dir-address" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
-    IPADDR=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
-    TORRC="DirAuthority $TOR_NICK orport=$TOR_ORPORT no-v2 v3ident=$AUTH $SERVICE  $RELAY"
-    echo $TORRC > /etc/torrc.d/dirauthority
-    echo "Waiting for other DA's to come up..."
+    sed -i -e 's/^dir-address .*$/dir-address '$PUBLIC_IP':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
     ;;
 
   RELAY)
@@ -277,13 +303,14 @@ EOF
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
-    echo "Waiting for other DA's to come up..."
     ;;
 
   BRIDGE)
     echo "Setting role to BRIDGE"
+    echo -e "BridgeRelay 1" > /etc/torrc.d/bridge
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
+    echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;
 
@@ -314,8 +341,31 @@ EOF
     ;;
 esac
 
+# Define the DAs on _every_ node
+ls -1d $TOR_DIR/DA* | while read DA_DIR ; do
+  TOR_NICK=$(basename $DA_DIR)
+  AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
+  NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
+  RELAY=$(cat $TOR_DIR/$TOR_NICK/fingerprint|awk -F " " '{print $2}')
+  SERVICE=$(grep "dir-address" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
+  TORRC="DirAuthority $TOR_NICK orport=$TOR_ORPORT no-v2 v3ident=$AUTH $SERVICE  $RELAY"
+  echo $TORRC > /etc/torrc.d/$TOR_NICK
+done
+
+# Generate the torrc file that a client would use to connect
+(
+  cat /etc/tor/DA*
+  cat <<EOF
+SOCKSPort 0.0.0.0:9050
+EOF
+) > /etc/tor/torrc.client
+
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
 
+# Push back the torrc client config
+aws s3 cp /etc/tor/torrc.client s3://${s3_bucket}/torrc.client
+
 systemctl restart tor
 
+) 2>&1 | tee /tmp/tor-vpin.log
