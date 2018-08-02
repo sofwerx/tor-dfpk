@@ -297,7 +297,7 @@ EOF
     	echo "Saving DA fingerprint to shared path"
     fi
 
-    sed -i -e 's/^dir-address .*$/dir-address '$PUBLIC_IP':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
+    sed -i -e 's/^dir-address .*$/dir-address '$PUBLIC_IPV4':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
     ;;
 
   RELAY)
