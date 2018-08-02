@@ -162,7 +162,7 @@ EOF
 # The /etc/tor/torrc is entirely commented out by default. Best not touch that.
 # That file includes files in the /etc/torrc.d directory tree, so let's use that instead.
 # In order to do this we must specify where our directory is in the torrc.
-echo -e "%include /etc/torrc.d/" > /etc/tor/torrc
+echo -e "%include /etc/torrc.d/" >> /etc/tor/torrc
 mkdir -p /etc/torrc.d
 
 # This is our base config shared by all nodes
@@ -297,7 +297,7 @@ EOF
     	echo "Saving DA fingerprint to shared path"
     fi
 
-    sed -i -e 's/^dir-address .*$/dir-address '$PUBLIC_IPV4':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
+    sed -i -e 's/^dir-address .*$/dir-address '$TOR_IP':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
     ;;
 
   RELAY)
