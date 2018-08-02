@@ -278,7 +278,7 @@ EOF
 
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
-    echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
+    echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
 
     # TODO: Deal with securely handling the identity key
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
