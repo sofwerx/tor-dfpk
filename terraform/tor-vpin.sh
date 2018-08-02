@@ -170,7 +170,7 @@ mkdir -p /etc/torrc.d
 
 cat <<EOF > /etc/torrc.d/base
 # Run Tor as a regular user (do not change this)
-#User debian-tor
+User debian-tor
 
 TestingTorNetwork 1
 
