@@ -161,6 +161,8 @@ EOF
 
 # The /etc/tor/torrc is entirely commented out by default. Best not touch that.
 # That file includes files in the /etc/torrc.d directory tree, so let's use that instead.
+# In order to do this we must specify where our directory is in the torrc.
+ech -e "%include /etc/torrc.d/" > /etc/tor/torrc
 mkdir -p /etc/torrc.d
 
 # This is our base config shared by all nodes
