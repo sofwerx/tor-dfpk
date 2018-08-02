@@ -163,6 +163,7 @@ EOF
 # That file includes files in the /etc/torrc.d directory tree, so let's use that instead.
 # In order to do this we must specify where our directory is in the torrc.
 echo -e "%include /etc/torrc.d/" >> /etc/tor/torrc
+echo -e "Log notice file /var/log/tor/notices.log" >> /etc/tor/torrc
 mkdir -p /etc/torrc.d
 
 # This is our base config shared by all nodes
