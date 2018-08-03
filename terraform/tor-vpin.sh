@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Dumb comment
-
 (
 export DEBIAN_FRONTEND=noninteractive
 
@@ -192,10 +190,10 @@ TestingTorNetwork 1
 # but can cause consensus instability and network unreliability
 # (Some are also bad for security.)
 AssumeReachable 1
-PathsNeededToBuildCircuits 0.25
-TestingDirAuthVoteExit *
-TestingDirAuthVoteHSDir *
-V3AuthNIntervalsValid 2
+#PathsNeededToBuildCircuits 0.25
+#TestingDirAuthVoteExit *
+#TestingDirAuthVoteHSDir *
+#V3AuthNIntervalsValid 2
 
 ## Always On Testing Options ##
 # We enable TestingDirAuthVoteGuard to avoid Guard stability requirements
@@ -249,7 +247,7 @@ V3AuthoritativeDirectory 1
 # If clock desynchronisation is an issue, use an interval of at least:
 #   18 * drift in seconds, to allow for a clock slop factor
 #TestingV3AuthInitialVotingInterval 300
-V3AuthVotingInterval 15
+V3AuthVotingInterval 10
 # VoteDelay + DistDelay must be less than VotingInterval
 #TestingV3AuthInitialVoteDelay 5
 V3AuthVoteDelay 5
