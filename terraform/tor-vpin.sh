@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Dumb comment
-
 (
 export DEBIAN_FRONTEND=noninteractive
 
@@ -192,10 +190,10 @@ TestingTorNetwork 1
 # but can cause consensus instability and network unreliability
 # (Some are also bad for security.)
 AssumeReachable 1
-PathsNeededToBuildCircuits 0.25
-TestingDirAuthVoteExit *
-TestingDirAuthVoteHSDir *
-V3AuthNIntervalsValid 2
+#PathsNeededToBuildCircuits 0.25
+#TestingDirAuthVoteExit *
+#TestingDirAuthVoteHSDir *
+#V3AuthNIntervalsValid 2
 
 ## Always On Testing Options ##
 # We enable TestingDirAuthVoteGuard to avoid Guard stability requirements
