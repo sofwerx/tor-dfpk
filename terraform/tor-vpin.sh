@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Dumb comment
+
 (
 export DEBIAN_FRONTEND=noninteractive
 
