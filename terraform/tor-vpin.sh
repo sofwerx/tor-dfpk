@@ -247,12 +247,12 @@ V3AuthoritativeDirectory 1
 # If clock desynchronisation is an issue, use an interval of at least:
 #   18 * drift in seconds, to allow for a clock slop factor
 #TestingV3AuthInitialVotingInterval 300
-V3AuthVotingInterval 10
+V3AuthVotingInterval 30
 # VoteDelay + DistDelay must be less than VotingInterval
 #TestingV3AuthInitialVoteDelay 5
-V3AuthVoteDelay 5
+V3AuthVoteDelay 10
 #TestingV3AuthInitialDistDelay 5
-V3AuthDistDelay 5
+V3AuthDistDelay 10
 # This is autoconfigured by chutney, so you probably don't want to use it
 #TestingV3AuthVotingStartOffset 0
 
