@@ -357,7 +357,7 @@ done
 
 # Generate the torrc file that a client would use to connect
 (
-  cat /etc/tor/DA*
+  cat /etc/torrc.d/DA*
   cat <<EOF
 SOCKSPort 0.0.0.0:9050
 EOF
