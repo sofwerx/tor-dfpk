@@ -165,8 +165,8 @@ EOF
 echo -e "%include /etc/torrc.d/" >> /etc/tor/torrc
 echo -e "Log notice file /var/log/tor/notices.log" >> /etc/tor/torrc
 mkdir -p /etc/torrc.d
-chown debian-tor:debian-tor /etc/tor
-chown debian-tor:debian-tor /etc/torrc.d
+chown -R debian-tor:debian-tor /etc/tor
+chown -R debian-tor:debian-tor /etc/torrc.d
 
 # This is our base config shared by all nodes
 
