@@ -165,12 +165,14 @@ EOF
 echo -e "%include /etc/torrc.d/" >> /etc/tor/torrc
 echo -e "Log notice file /var/log/tor/notices.log" >> /etc/tor/torrc
 mkdir -p /etc/torrc.d
+chown debian-tor:debian-tor /etc/tor
+chown debian-tor:debian-tor /etc/torrc.d
 
 # This is our base config shared by all nodes
 
 cat <<EOF > /etc/torrc.d/base
 # Run Tor as a regular user (do not change this)
-User debian-tor
+#User debian-tor
 
 TestingTorNetwork 1
 
@@ -204,7 +206,7 @@ TestingMinExitFlagThreshold 0
 #Default VoteOnHidServDirectoriesV2 1
 
 ## Options that we always want to test ##
-Sandbox 1
+#Sandbox 1
 
 # Private tor network configuration
 RunAsDaemon 0
