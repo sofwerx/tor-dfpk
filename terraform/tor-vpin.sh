@@ -249,7 +249,7 @@ V3AuthoritativeDirectory 1
 # If clock desynchronisation is an issue, use an interval of at least:
 #   18 * drift in seconds, to allow for a clock slop factor
 #TestingV3AuthInitialVotingInterval 300
-V3AuthVotingInterval 15
+V3AuthVotingInterval 10
 # VoteDelay + DistDelay must be less than VotingInterval
 #TestingV3AuthInitialVoteDelay 5
 V3AuthVoteDelay 5
