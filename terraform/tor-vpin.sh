@@ -165,7 +165,6 @@ EOF
 echo -e "%include /etc/torrc.d/" >> /etc/tor/torrc
 echo -e "Log notice file /var/log/tor/notices.log" >> /etc/tor/torrc
 mkdir -p /etc/torrc.d
-chown -R debian-tor:debian-tor /etc/tor
 
 # This is our base config shared by all nodes
 
@@ -364,6 +363,7 @@ SOCKSPort 0.0.0.0:9050
 EOF
 ) > /etc/tor/torrc.client
 
+chown -R debian-tor:debian-tor /etc/tor
 chown -R debian-tor:debian-tor /etc/torrc.d
 
 # Push back up s3 bucket config directory for this tor node
