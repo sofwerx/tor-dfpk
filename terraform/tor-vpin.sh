@@ -133,7 +133,7 @@ pip install awscli
 aws s3 sync s3://${s3_bucket}$TOR_DIR $TOR_DIR/
 
 mkdir -p $TOR_DIR/$TOR_NICK
-chmod 755 $TOR_DIR/$TOR_NICK
+#chmod 755 $TOR_DIR/$TOR_NICK
 
 # Extract or package up the ssh host keys for ssh known_hosts sanity later
 if [ -f $TOR_DIR/$TOR_NICK/ssh.tar.bz2 ] ; then
@@ -279,6 +279,7 @@ V3AuthDistDelay 5
 #TestingDirAuthVoteHSDir *
 EOF
 
+    chmod 755 $TOR_DIR/$TOR_NICK
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
@@ -349,7 +350,6 @@ esac
 
 # Define the DAs on _every_ node
 ls -1d $TOR_DIR/DA* | while read DA_DIR ; do
-  chmod 755 $TOR_DIR/DA*
   TOR_NICK=$(basename $DA_DIR)
   AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
   NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
@@ -369,6 +369,7 @@ EOF
 
 chown -R debian-tor:debian-tor /etc/tor
 chown -R debian-tor:debian-tor /etc/torrc.d
+#chmod 755 $TOR_DIR/DA0
 
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
