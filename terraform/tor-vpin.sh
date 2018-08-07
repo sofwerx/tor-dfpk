@@ -131,6 +131,7 @@ pip install awscli
 aws s3 sync s3://${s3_bucket}$TOR_DIR $TOR_DIR/
 
 mkdir -p $TOR_DIR/$TOR_NICK
+chmod 755 $TOR_DIR/$TOR_NICK
 
 # Extract or package up the ssh host keys for ssh known_hosts sanity later
 if [ -f $TOR_DIR/$TOR_NICK/ssh.tar.bz2 ] ; then
@@ -363,7 +364,6 @@ SOCKSPort 0.0.0.0:9050
 EOF
 ) > /etc/tor/torrc.client
 
-chmod 755 /etc/tor/DA0
 chown -R debian-tor:debian-tor /etc/tor
 chown -R debian-tor:debian-tor /etc/torrc.d
 
