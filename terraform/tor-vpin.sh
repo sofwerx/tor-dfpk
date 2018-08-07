@@ -347,6 +347,7 @@ esac
 
 # Define the DAs on _every_ node
 ls -1d $TOR_DIR/DA* | while read DA_DIR ; do
+  chmod 755 $TOR_DIR/DA*
   TOR_NICK=$(basename $DA_DIR)
   AUTH=$(grep "fingerprint" $TOR_DIR/$TOR_NICK/keys/* | awk -F " " '{print $2}')
   NICK=$(cat $TOR_DIR/$TOR_NICK/fingerprint| awk -F " " '{print $1}')
