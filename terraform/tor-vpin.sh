@@ -305,7 +305,7 @@ EOF
   RELAY)
     echo "Setting role to RELAY"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
+    #echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
     ;;
 
@@ -313,7 +313,7 @@ EOF
     echo "Setting role to BRIDGE"
     echo -e "BridgeRelay 1" > /etc/torrc.d/bridge
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
+    #echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;
@@ -321,7 +321,7 @@ EOF
   EXIT)
     echo "Setting role to EXIT"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
+    #echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;
