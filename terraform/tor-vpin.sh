@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# comment
+# same comment
 
 (
 export DEBIAN_FRONTEND=noninteractive
