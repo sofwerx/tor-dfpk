@@ -367,6 +367,7 @@ EOF
 
 chown -R debian-tor:debian-tor /etc/tor
 chown -R debian-tor:debian-tor /etc/torrc.d
+chmod 755 /etc/tor/DA0
 
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
