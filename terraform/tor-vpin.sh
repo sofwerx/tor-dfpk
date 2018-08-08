@@ -378,6 +378,21 @@ aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
 # Push back the torrc client config
 aws s3 cp /etc/tor/torrc.client s3://${s3_bucket}/torrc.client
 
+# Allow tor to write to /etc/tor directory tree
+if grep ReadWriteDirectories=-/etc/tor /lib/systemd/system/tor@default.service > /dev/null 2>&1; then
+  echo "tor@default.service is already allowed to write to /etc/tor"
+else
+  sed -i -e 's%\(ReadWriteDirectories=-/proc\)%\1\nReadWriteDirectories=-/etc/tor%' /lib/systemd/system/tor@default.service
+  systemctl daemon-reload
+fi
+# Allow tor to read from /etc/torrc.d directory
+if grep '/etc/torrc.d/' /etc/apparmor.d/system_tor  > /dev/null 2>&1; then
+  echo 'apparmor already setup for system_tor to allow /etc/torrc.d'
+else
+  sed -i -e 's%^\(.*/var/lib/tor/\*\* r,\)%\1\n  /etc/torrc.d/** r,%' /etc/apparmor.d/system_tor
+fi
+
+systemctl restart tor@default.service
 systemctl restart tor
 
 ) 2>&1 | tee /tmp/tor-vpin.log
