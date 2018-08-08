@@ -309,7 +309,8 @@ EOF
     echo "Setting role to RELAY"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     #echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
-    echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
+    #echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
+    echo -e "ExitPolicy reject *:*" > /etc/tor/torrc.d/exitpolicy
     ;;
 
   BRIDGE)
