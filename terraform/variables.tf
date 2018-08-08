@@ -33,7 +33,7 @@ variable vpc_subnet_network_bits {
 
 variable vpc_subnet_count {
   description = "Number of subnets to create"
-  default = 2
+  default = 3
 }
 
 variable "aws_availability_zones" {
