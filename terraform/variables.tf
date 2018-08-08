@@ -110,7 +110,7 @@ variable tor_da_count {
 
 variable tor_relay_count {
     description = "Number of RELAY nodes"
-    default = "1"
+    default = "3"
 }
 
 variable tor_bridge_count {
