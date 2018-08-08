@@ -392,6 +392,16 @@ else
   sed -i -e 's%^\(.*/var/lib/tor/\*\* r,\)%\1\n  /etc/torrc.d/** r,%' /etc/apparmor.d/system_tor
 fi
 
+if [ ! -h /etc/apparmor.d/disable/system_tor ]; then
+  ln -nsf /etc/apparmor.d/system_tor /etc/apparmor.d/disable/system_tor
+fi
+
+if systemctl -a | grep apparmor ; then
+  systemctl stop apparmor
+  systemctl disable apparmor
+  reboot
+fi
+
 systemctl restart tor@default.service
 systemctl restart tor
 
