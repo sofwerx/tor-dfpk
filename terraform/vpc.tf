@@ -113,6 +113,17 @@ resource "aws_security_group_rule" "sg_ingress_da" {
     security_group_id = "${aws_security_group.sg.id}"
 }
 
+resource "aws_security_group_rule" "sg_ingress_https" {
+    type = "ingress"
+    from_port = "443"
+    to_port = "443"
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+
+    security_group_id = "${aws_security_group.sg.id}"
+}
+
 resource "aws_security_group_rule" "sg_ingress_relay" {
     type = "ingress"
     from_port = "${var.tor_orport}"
@@ -301,7 +312,7 @@ resource "aws_instance" "da" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
@@ -380,7 +391,7 @@ resource "aws_instance" "relay" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
@@ -459,7 +470,7 @@ resource "aws_instance" "exit" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 
@@ -538,7 +549,7 @@ resource "aws_instance" "bridge" {
     
   root_block_device {
     volume_type = "standard"
-    delete_on_termination = false
+    delete_on_termination = true
     volume_size = "${var.ebs_root_volume_size}"
   }
 

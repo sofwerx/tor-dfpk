@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# comment
+
 (
 export DEBIAN_FRONTEND=noninteractive
 
@@ -131,6 +133,7 @@ pip install awscli
 aws s3 sync s3://${s3_bucket}$TOR_DIR $TOR_DIR/
 
 mkdir -p $TOR_DIR/$TOR_NICK
+chmod 755 $TOR_DIR/$TOR_NICK
 
 # Extract or package up the ssh host keys for ssh known_hosts sanity later
 if [ -f $TOR_DIR/$TOR_NICK/ssh.tar.bz2 ] ; then
@@ -161,6 +164,12 @@ EOF
 
 # The /etc/tor/torrc is entirely commented out by default. Best not touch that.
 # That file includes files in the /etc/torrc.d directory tree, so let's use that instead.
+# In order to do this we must specify where our directory is in the torrc.
+if ! grep -e '^%include /etc/torrc.d/' /etc/tor/torrc > /dev/null 2>&1 ; then
+  echo -e "%include /etc/torrc.d/" >> /etc/tor/torrc
+  echo -e "Log notice file /var/log/tor/notices.log" >> /etc/tor/torrc
+fi
+
 mkdir -p /etc/torrc.d
 
 # This is our base config shared by all nodes
@@ -187,10 +196,10 @@ TestingTorNetwork 1
 # but can cause consensus instability and network unreliability
 # (Some are also bad for security.)
 AssumeReachable 1
-PathsNeededToBuildCircuits 0.25
-TestingDirAuthVoteExit *
-TestingDirAuthVoteHSDir *
-V3AuthNIntervalsValid 2
+#PathsNeededToBuildCircuits 0.25
+#TestingDirAuthVoteExit *
+#TestingDirAuthVoteHSDir *
+#V3AuthNIntervalsValid 2
 
 ## Always On Testing Options ##
 # We enable TestingDirAuthVoteGuard to avoid Guard stability requirements
@@ -201,7 +210,7 @@ TestingMinExitFlagThreshold 0
 #Default VoteOnHidServDirectoriesV2 1
 
 ## Options that we always want to test ##
-Sandbox 1
+#Sandbox 1
 
 # Private tor network configuration
 RunAsDaemon 0
@@ -245,12 +254,12 @@ V3AuthoritativeDirectory 1
 # as they both need to evenly divide 30 minutes.
 # If clock desynchronisation is an issue, use an interval of at least:
 #   18 * drift in seconds, to allow for a clock slop factor
-TestingV3AuthInitialVotingInterval 300
-#V3AuthVotingInterval 15
+#TestingV3AuthInitialVotingInterval 300
+V3AuthVotingInterval 30
 # VoteDelay + DistDelay must be less than VotingInterval
-TestingV3AuthInitialVoteDelay 5
+#TestingV3AuthInitialVoteDelay 5
 V3AuthVoteDelay 5
-TestingV3AuthInitialDistDelay 5
+#TestingV3AuthInitialDistDelay 5
 V3AuthDistDelay 5
 # This is autoconfigured by chutney, so you probably don't want to use it
 #TestingV3AuthVotingStartOffset 0
@@ -277,7 +286,7 @@ EOF
 
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
     echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
-    echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
+    echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
 
     # TODO: Deal with securely handling the identity key
     KEYPATH=$TOR_DIR/$TOR_NICK/keys
@@ -297,13 +306,14 @@ EOF
     	echo "Saving DA fingerprint to shared path"
     fi
 
-    sed -i -e 's/^dir-address .*$/dir-address '$PUBLIC_IP':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
+    sed -i -e 's/^dir-address .*$/dir-address '$TOR_IP':'$TOR_DAPORT'/' $KEYPATH/authority_certificate
     ;;
 
   RELAY)
     echo "Setting role to RELAY"
+    echo -e "SocksPort 0" > /etc/torrc.d/socksport
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
+    echo -e "ExitPolicy reject *:*" > /etc/tor/torrc.d/exitpolicy
     ;;
 
   BRIDGE)
@@ -355,7 +365,7 @@ done
 
 # Generate the torrc file that a client would use to connect
 (
-  cat /etc/tor/DA*
+  cat /etc/torrc.d/DA*
   cat <<EOF
 SOCKSPort 0.0.0.0:9050
 EOF
@@ -377,12 +387,40 @@ EOF
 #  fi
 ) > /etc/tor/torrc.client
 
+chown -R debian-tor:debian-tor /etc/tor
+chown -R debian-tor:debian-tor /etc/torrc.d
+
 # Push back up s3 bucket config directory for this tor node
 aws s3 sync $TOR_DIR/$TOR_NICK/ s3://${s3_bucket}$TOR_DIR/$TOR_NICK/
 
 # Push back the torrc client config
 aws s3 cp /etc/tor/torrc.client s3://${s3_bucket}/torrc.client
 
+# Allow tor to write to /etc/tor directory tree
+if grep ReadWriteDirectories=-/etc/tor /lib/systemd/system/tor@default.service > /dev/null 2>&1; then
+  echo "tor@default.service is already allowed to write to /etc/tor"
+else
+  sed -i -e 's%\(ReadWriteDirectories=-/proc\)%\1\nReadWriteDirectories=-/etc/tor%' /lib/systemd/system/tor@default.service
+  systemctl daemon-reload
+fi
+# Allow tor to read from /etc/torrc.d directory
+if grep '/etc/torrc.d/' /etc/apparmor.d/system_tor  > /dev/null 2>&1; then
+  echo 'apparmor already setup for system_tor to allow /etc/torrc.d'
+else
+  sed -i -e 's%^\(.*/var/lib/tor/\*\* r,\)%\1\n  /etc/torrc.d/** r,%' /etc/apparmor.d/system_tor
+fi
+
+if [ ! -h /etc/apparmor.d/disable/system_tor ]; then
+  ln -nsf /etc/apparmor.d/system_tor /etc/apparmor.d/disable/system_tor
+fi
+
+if systemctl -a | grep apparmor ; then
+  systemctl stop apparmor
+  systemctl disable apparmor
+  reboot
+fi
+
+systemctl restart tor@default.service
 systemctl restart tor
 
 ) 2>&1 | tee /tmp/tor-vpin.log

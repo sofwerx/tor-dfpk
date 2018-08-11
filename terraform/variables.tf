@@ -33,7 +33,7 @@ variable vpc_subnet_network_bits {
 
 variable vpc_subnet_count {
   description = "Number of subnets to create"
-  default = 2
+  default = 3
 }
 
 variable "aws_availability_zones" {
@@ -110,7 +110,7 @@ variable tor_da_count {
 
 variable tor_relay_count {
     description = "Number of RELAY nodes"
-    default = "1"
+    default = "3"
 }
 
 variable tor_bridge_count {
