@@ -121,7 +121,7 @@ EOF
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 74A941BA219EC810 || \
 apt-key adv --keyserver keys.gnupg.net --recv-keys 74A941BA219EC810
 apt-get update 
-DEBIAN_FRONTEND=noninteractive apt-get install -y tor deb.torproject.org-keyring
+DEBIAN_FRONTEND=noninteractive apt-get install -y tor obfs4proxy deb.torproject.org-keyring
 
 # Install aws cli tool
 apt-get install -y python-pip
@@ -217,16 +217,18 @@ DisableDebuggerAttachment 0
 EOF
 
 echo -e "DataDirectory $TOR_DIR/$TOR_NICK" > /etc/torrc.d/datadirectory
+
 TOR_IP=${ip}
 if [ -z "$TOR_IP" ] ; then
   TOR_IP=$PUBLIC_IPV4
 fi
 echo "Address $TOR_IP" > /etc/torrc.d/address
-echo -e "ControlPort 0.0.0.0:9051" > /etc/torrc.d/controlport
-if [  -z "$TOR_CONTROL_PWD" ]; then
-  TOR_CONTROL_PWD="16:6971539E06A0F94C6011414768D85A25949AE1E201BDFE10B27F3B3EBA"
-fi
-echo -e "HashedControlPassword $TOR_CONTROL_PWD" > /etc/torrc.d/hashedcontrolpassword
+
+#echo -e "ControlPort 0.0.0.0:9051" > /etc/torrc.d/controlport
+#if [  -z "$TOR_CONTROL_PWD" ]; then
+#  TOR_CONTROL_PWD="16:6971539E06A0F94C6011414768D85A25949AE1E201BDFE10B27F3B3EBA"
+#fi
+#echo -e "HashedControlPassword $TOR_CONTROL_PWD" > /etc/torrc.d/hashedcontrolpassword
 
 # Each role has a set of differences
 case ${role} in
@@ -301,23 +303,22 @@ EOF
   RELAY)
     echo "Setting role to RELAY"
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept private:*" > /etc/torrc.d/exitpolicy
     ;;
 
   BRIDGE)
     echo "Setting role to BRIDGE"
-    echo -e "BridgeRelay 1" > /etc/torrc.d/bridge
-    echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
+    echo -e "SocksPort 0" > /etc/torrc.d/socksport
+    echo -e "BridgeRelay 1" > /etc/torrc.d/bridgerelay
+    echo -e "OrPort 443" > /etc/torrc.d/orport
     echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;
 
   EXIT)
     echo "Setting role to EXIT"
+    echo -e "SocksPort 0" > /etc/torrc.d/orport
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
-    echo -e "Dirport $TOR_DAPORT" > /etc/torrc.d/daport
     echo -e "ExitPolicy accept *:*" > /etc/torrc.d/exitpolicy
     echo "Waiting for other DA's to come up..."
     ;;
@@ -358,6 +359,22 @@ done
   cat <<EOF
 SOCKSPort 0.0.0.0:9050
 EOF
+#  BRIDGES=false
+#  for fingerprint in /etc/tor/BRIDGE*/fingerprint; do
+#    if [ -f "$fingerprint" ]; then
+#      BRIDGES=true
+#    fi
+#    cat <<EOF
+#Bridge obfs4 $(cat $fingerprint)
+#EOF
+#  done
+#  if $BRIDGES
+#  then
+#    cat <<EOF
+#UseBridges 1
+#ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy --managed
+#EOF
+#  fi
 ) > /etc/tor/torrc.client
 
 # Push back up s3 bucket config directory for this tor node
