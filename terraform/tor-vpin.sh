@@ -51,7 +51,7 @@ sudo -E apt-get install -y fail2ban dnsmasq curl
 # Deal with AWS split-horizon DNS and using both IPV4 and IPV6 DNS servers
 
 # Disable resolvconf updates, because we can't have nice things.
-resolvconf --disable-updates
+which resolveconf && resolvconf --disable-updates
 
 mkdir -p /var/run/dnsmasq/
 if [ ! -f /var/run/dnsmasq/resolv.conf ] ; then
@@ -178,8 +178,6 @@ cat <<EOF > /etc/torrc.d/base
 # Run Tor as a regular user (do not change this)
 #User debian-tor
 
-TestingTorNetwork 1
-
 ## Comprehensive Bootstrap Testing Options ##
 # These typically launch a working minimal Tor network in 25s-30s,
 # and a working HS Tor network in 40-45s.
@@ -243,6 +241,7 @@ echo "Address $TOR_IP" > /etc/torrc.d/address
 case ${role} in
   DA)
 cat <<EOF > /etc/torrc.d/da
+TestingTorNetwork 1
 AuthoritativeDirectory 1
 V3AuthoritativeDirectory 1
 
