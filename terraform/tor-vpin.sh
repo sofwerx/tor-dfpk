@@ -123,7 +123,7 @@ EOF
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 74A941BA219EC810 || \
 apt-key adv --keyserver keys.gnupg.net --recv-keys 74A941BA219EC810
 apt-get update 
-DEBIAN_FRONTEND=noninteractive apt-get install -y tor obfs4proxy deb.torproject.org-keyring
+DEBIAN_FRONTEND=noninteractive apt-get install -y tor obfsproxy obfs4proxy deb.torproject.org-keyring
 
 # Install aws cli tool
 apt-get install -y python-pip
@@ -321,6 +321,9 @@ EOF
     echo -e "BridgeRelay 1" > /etc/torrc.d/bridgerelay
     echo -e "OrPort 443" > /etc/torrc.d/orport
     echo -e "ExitPolicy reject *:*" > /etc/torrc.d/exitpolicy
+    echo -e "ServerTransportPlugin obfs3,scramblesuit exec /usr/bin/obfsproxy managed" > /etc/torrc.d/servertransportplugin
+    ## This is commented out as it requires obfs4proxy, which is not available in openwrt yet
+    #echo -e "ServerTransportPlugin obfs4 exec /usr/bin/obfs4proxy managed" >> /etc/torrc.d/servertransportplugin
     echo "Waiting for other DA's to come up..."
     ;;
 
@@ -381,7 +384,10 @@ EOF
 #  then
 #    cat <<EOF
 #UseBridges 1
-#ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy --managed
+#ClientTransportPlugin obfs3,scramblesuit exec /usr/bin/obfsproxy --managed
+#
+### This is commented out as it requires obfs4proxy, which is not available in openwrt yet
+##ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy --managed
 #EOF
 #  fi
 ) > /etc/tor/torrc.client
