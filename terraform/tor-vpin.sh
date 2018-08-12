@@ -370,26 +370,19 @@ done
   cat /etc/torrc.d/DA*
   cat <<EOF
 SOCKSPort 0.0.0.0:9050
+UseBridges 1
+ClientTransportPlugin obfs3,scramblesuit exec /usr/bin/obfsproxy --managed
+## This is commented out as it requires obfs4proxy, which is not available in openwrt yet
+#ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy --managed
 EOF
-#  BRIDGES=false
-#  for fingerprint in /etc/tor/BRIDGE*/fingerprint; do
-#    if [ -f "$fingerprint" ]; then
-#      BRIDGES=true
-#    fi
-#    cat <<EOF
-#Bridge obfs4 $(cat $fingerprint)
-#EOF
-#  done
-#  if $BRIDGES
-#  then
-#    cat <<EOF
-#UseBridges 1
-#ClientTransportPlugin obfs3,scramblesuit exec /usr/bin/obfsproxy --managed
-#
-### This is commented out as it requires obfs4proxy, which is not available in openwrt yet
-##ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy --managed
-#EOF
-#  fi
+  BRIDGE_NUMBER=0
+  for BRIDGE_HOST in $(echo "${bridge_hosts}" | sed -e 's/,/ /g'); do
+    BRIDGEDIR="/etc/tor/BRIDGE${BRIDGE_NUMBER}"
+    ((BRIDGE_NUMBER++))
+    fingerprint="$(cat $BRIDGEDIR/fingerprint | cut -d' ' -f2)"
+    echo "Bridge obfs3,scramblesuit ${BRIDGE_HOST}:443 $fingerprint"
+    #echo "Bridge obfs4 ${BRIDGE_HOST} $fingerprint"
+  done
 ) > /etc/tor/torrc.client
 
 chown -R debian-tor:debian-tor /etc/tor
