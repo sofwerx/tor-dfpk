@@ -377,11 +377,11 @@ ClientTransportPlugin obfs3,scramblesuit exec /usr/bin/obfsproxy --managed
 EOF
   BRIDGE_NUMBER=0
   for BRIDGE_HOST in $(echo "${bridge_hosts}" | sed -e 's/,/ /g'); do
-    BRIDGEDIR="/etc/tor/BRIDGE${BRIDGE_NUMBER}"
+    BRIDGEDIR="/etc/tor/BRIDGE$BRIDGE_NUMBER"
     ((BRIDGE_NUMBER++))
     fingerprint="$(cat $BRIDGEDIR/fingerprint | cut -d' ' -f2)"
-    echo "Bridge obfs3,scramblesuit ${BRIDGE_HOST}:443 $fingerprint"
-    #echo "Bridge obfs4 ${BRIDGE_HOST} $fingerprint"
+    echo "Bridge obfs3,scramblesuit $BRIDGE_HOST:443 $fingerprint"
+    #echo "Bridge obfs4 $BRIDGE_HOST:443 $fingerprint"
   done
 ) > /etc/tor/torrc.client
 
