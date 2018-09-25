@@ -251,7 +251,7 @@ resource "aws_eip" "bridge" {
 data "template_file" "da" {
   count = "${var.tor_da_count}"
 
-  template = "${file("tor-vpin.sh")}"
+  template = "${file("tor-dfpk.sh")}"
 
   vars {
     role = "DA"
@@ -330,7 +330,7 @@ resource "aws_instance" "da" {
 data "template_file" "relay" {
   count = "${var.tor_relay_count}"
 
-  template = "${file("tor-vpin.sh")}"
+  template = "${file("tor-dfpk.sh")}"
 
   vars {
     role = "RELAY"
@@ -409,7 +409,7 @@ resource "aws_instance" "relay" {
 data "template_file" "exit" {
   count = "${var.tor_exit_count}"
 
-  template = "${file("tor-vpin.sh")}"
+  template = "${file("tor-dfpk.sh")}"
 
   vars {
     role = "EXIT"
@@ -488,7 +488,7 @@ resource "aws_instance" "exit" {
 data "template_file" "bridge" {
   count = "${var.tor_bridge_count}"
 
-  template = "${file("tor-vpin.sh")}"
+  template = "${file("tor-dfpk.sh")}"
 
   vars {
     role = "BRIDGE"

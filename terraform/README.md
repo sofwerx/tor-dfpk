@@ -1,6 +1,6 @@
-# tor-vpin terraform
+# tor-dfpk terraform
 
-[![Build Status](https://travis-ci.org/sofwerx/tor-vpin.svg?branch=master)](https://travis-ci.org/sofwerx/tor-vpin)
+[![Build Status](https://travis-ci.org/sofwerx/tor-dfpk.svg?branch=master)](https://travis-ci.org/sofwerx/tor-dfpk)
 
 This is a deployment of AWS instances that comprise the various tiers of a private tor network
 

@@ -5,7 +5,7 @@ variable Project {
 
 variable Lifecycle {
   description = "Lifecycle (dev, qa, prod)"
-  default = "vpin"
+  default = "dfpk"
 }
 
 variable aws_access_key_id {
@@ -125,7 +125,7 @@ variable tor_exit_count {
 
 variable s3_bucket {
     description = "s3 bucket to use for service discovery"
-    default = "sofwerx-tor-vpin"
+    default = "sofwerx-tor-dfpk"
 }
 
 variable tor_daport {
