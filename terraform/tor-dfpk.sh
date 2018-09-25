@@ -421,4 +421,4 @@ fi
 systemctl restart tor@default.service
 systemctl restart tor
 
-) 2>&1 | tee /tmp/tor-vpin.log
+) 2>&1 | tee /tmp/tor-dfpk.log

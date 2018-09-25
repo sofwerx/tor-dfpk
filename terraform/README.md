@@ -20,5 +20,5 @@ which runs the script:
 
 which runs the command:
 
-    terraform init --backend-config="key=tor/vpin/terraform.tfstate"
+    terraform init --backend-config="key=tor/dfpk/terraform.tfstate"
 

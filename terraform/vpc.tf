@@ -581,7 +581,7 @@ resource "aws_iam_policy" "iam_policy" {
     policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Id": "SOFWERXTORVPINBUCKETPOLICY",
+  "Id": "SOFWERXTORDFPKBUCKETPOLICY",
   "Statement": [
     {
       "Effect": "Allow",
