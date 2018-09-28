@@ -1,11 +1,11 @@
 variable Project {
   description = "Project name"
-  default = "tor"
+  default = "dfpk"
 }
 
 variable Lifecycle {
   description = "Lifecycle (dev, qa, prod)"
-  default = "dfpk"
+  default = "dev"
 }
 
 variable aws_access_key_id {
