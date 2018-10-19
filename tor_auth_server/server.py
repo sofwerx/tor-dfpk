@@ -1,4 +1,20 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+
+
+# torrc configuration data which tells clients how to connect to the private
+# Tor network.
+#
+# This is just placeholder data until I know the tor server config or have a
+# way to read it off disk.
+TORRC_CONFIG_DATA = {
+    'DirAuthority': {
+        'nickname': 'test_private',
+        'ipv4': '133.713.371.337',
+        'port': 1234,
+        'fingerprint': 'afdsafdasf'
+    },
+}
 
 
 class TorAuthServer(BaseHTTPRequestHandler):
@@ -8,6 +24,10 @@ class TorAuthServer(BaseHTTPRequestHandler):
         self.send_header('WWW-Authenticate', 'Basic realm=\"Tor auth\"')
         self.send_header('Content-type', 'text/html')
         self.end_headers()
+
+    def send_tor_config_data(self):
+        json_data = json.dumps(TORRC_CONFIG_DATA)
+        self.wfile.write(str.encode(json_data))
 
     def do_GET(self):
         auth_header = self.headers.get('Authorization')
@@ -20,8 +40,7 @@ class TorAuthServer(BaseHTTPRequestHandler):
             # TODO: parse out the base64 string and authenticate it.
             print('Authenticated user connected, sending TOR config')
             self.send_response(200)
-            # TODO: TOR json data goes here
-            self.wfile.write(b'Authenticated')
+            self.send_tor_config_data()
         else:
             self.send_auth_request()
             self.wfile.write(b'Invalid auth credentials, try again')
