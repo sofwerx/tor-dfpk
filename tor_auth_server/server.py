@@ -1,24 +1,16 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import json
 import re
 
 
-# torrc configuration data which tells clients how to connect to the private
-# Tor network.
-#
-# This is just placeholder data until I know the tor server config or have a
-# way to read it off disk.
-TORRC_CONFIG_DATA = {
-    'DirAuthority': {
-        'nickname': 'test_private',
-        'ipv4': '133.713.371.337',
-        'port': 1234,
-        'fingerprint': 'afdsafdasf'
-    },
-}
+# This is the json config data that gets sent to authorized users
+TOR_CONFIG_JSON_STRING = None
+TOR_CONFIG_JSON_FILENAME = 'torconfig.json'
 
 
 AUTH_FILENAME = 'auth_credentials.dat'
+# Auth credentials are base64 encdoded strings that get loaded from the
+# auth_credentials.dat file.
+# The strings are user:password encoded in base64
 AUTH_CREDENTIALS = []
 
 # Regex used to check if a string is indeed base64
@@ -35,8 +27,7 @@ class TorAuthServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def send_tor_config_data(self):
-        json_data = json.dumps(TORRC_CONFIG_DATA)
-        self.wfile.write(str.encode(json_data))
+        self.wfile.write(TOR_CONFIG_JSON_STRING.encode())
 
     def do_GET(self):
         auth_header = self.headers.get('Authorization')
@@ -74,10 +65,17 @@ def read_auth_file():
                     print(f'auth credential {line} ignored, must be valid base64')
 
 
+def read_tor_config_json_file():
+    global TOR_CONFIG_JSON_STRING
+    with open(TOR_CONFIG_JSON_FILENAME, 'r') as f:
+        TOR_CONFIG_JSON_STRING = f.read()
+
+
 def run():
     print('Starting TOR Auth server')
 
     read_auth_file()
+    read_tor_config_json_file()
 
     server_address = ('127.0.0.1', 8080)
     httpd = HTTPServer(server_address, TorAuthServer)
