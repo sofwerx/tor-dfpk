@@ -27,6 +27,8 @@ class TorAuthServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def send_tor_config_data(self):
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
         self.wfile.write(TOR_CONFIG_JSON_STRING.encode())
 
     def do_GET(self):
