@@ -22,12 +22,12 @@
     "SocksPort": "0.0.0.0:9050",
     "UseBridges" : 1,
     "ClientTransportPlugin": {
-        "transport": "obfs3,scramblesuit",
+        "transport": "obfs3",
         "binary": "/usr/bin/obfsproxy",
         "options": "--managed"
     },
     "Bridge": {
-        "transport": "obfs3,scramblesuit",
+        "transport": "obfs3",
         "ip": "54.208.231.124",
         "orport": 443
     }
