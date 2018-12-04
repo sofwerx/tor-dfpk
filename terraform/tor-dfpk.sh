@@ -329,9 +329,9 @@ EOF
         echo '    },{'
       fi
       cat <<EOF >> /tor-dfpk/tor_auth_server/torconfig.json
-            "nickname": "${da}",
+            "nickname": "$da",
             "orport": $(cut -d' ' -f2 orport),
-            "v3ident" : "$(grep -i v3ident ${da} | sed -e 's/^.*v3ident=//' | cut -d' ' -f1)",
+            "v3ident" : "$(grep -i v3ident $da | sed -e 's/^.*v3ident=//' | cut -d' ' -f1)",
             "flags": "no-v2",
             "ip": "$(cut -d' ' -f2 address)",
             "port": $(cut -d' ' -f2 daport),
@@ -353,12 +353,13 @@ EOF
     "Bridge": {
         "transport": "obfs3",
 EOF
-    echo '        "ip": "'$(cat /etc/tor/bridge_host)'","' >> /tor-dfpk/tor_auth_server/torconfig.json
+    echo '        "ip": "'$(cat /etc/tor/bridge_hosts)'","' >> /tor-dfpk/tor_auth_server/torconfig.json
     cat <<EOF >> /tor-dfpk/tor_auth_server/torconfig.json
         "orport": 443
     }
 }
 EOF
+    cat /tor-dfpk/tor_auth_server/torconfig.json
 
     cat <<EOF > /etc/systemd/system/tor_auth_service
 [Unit]
