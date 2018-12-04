@@ -242,6 +242,7 @@ echo "Address $TOR_IP" > /etc/torrc.d/address
 case ${role} in
   DA)
     mkdir -p $TOR_DIR/$TOR_NICK/hidden
+    chmod 700 $TOR_DIR/$TOR_NICK/hidden
 
     cat <<EOF > /etc/torrc.d/da
 TestingTorNetwork 1
@@ -286,7 +287,7 @@ V3AuthDistDelay 5
 #TestingDirAuthVoteHSDir *
 
 HiddenServiceDir $TOR_DIR/$TOR_NICK/hidden
-HiddenServicePort 80 localhost:3000
+HiddenServicePort 80 localhost:8080
 EOF
 
     echo -e "OrPort $TOR_ORPORT" > /etc/torrc.d/orport
@@ -324,9 +325,9 @@ EOF
     first=
     for da in DA* ; do
       if [ -n "$first" ]; then
-        echo '    {'
+        echo '    },{' >> /tor-dfpk/tor_auth_server/torconfig.json
       else
-        echo '    },{'
+        echo '    {' >> /tor-dfpk/tor_auth_server/torconfig.json
       fi
       cat <<EOF >> /tor-dfpk/tor_auth_server/torconfig.json
             "nickname": "$da",
@@ -340,7 +341,7 @@ EOF
       first=false
     done
     popd
-    echo '    }'
+    echo '    }' >> /tor-dfpk/tor_auth_server/torconfig.json
     cat <<EOF >> /tor-dfpk/tor_auth_server/torconfig.json
     ],
     "SocksPort": "0.0.0.0:9050",
@@ -361,7 +362,7 @@ EOF
 EOF
     cat /tor-dfpk/tor_auth_server/torconfig.json
 
-    cat <<EOF > /etc/systemd/system/tor_auth_service
+    cat <<EOF > /etc/systemd/system/tor_auth_service.service
 [Unit]
 Description=Private TOR config auth service
 After=syslog.target
@@ -378,6 +379,7 @@ StandardError=syslog
 [Install]
 WantedBy=multi-user.target
 EOF
+    cat /etc/systemd/system/tor_auth_service.service
     systemctl daemon-reload
     systemctl enable tor_auth_service
     systemctl start tor_auth_service
