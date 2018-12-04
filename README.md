@@ -1,6 +1,6 @@
 # tor-dfpk
 
-[![Build Status](https://travis-ci.org/sofwerx/tor-vpin.svg?branch=master)](https://travis-ci.org/sofwerx/tor-vpin)
+[![Build Status](https://travis-ci.org/sofwerx/tor-dfpk.svg?branch=master)](https://travis-ci.org/sofwerx/tor-dfpk)
 
 Deploying The Onion Router (TOR) infrastructure for the Digital Force Protection Kit (DFPK) on AWS.
 
