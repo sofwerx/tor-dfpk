@@ -1,0 +1,34 @@
+{
+    "DirAuthorities": [
+        {
+            "nickname": "DA0",
+            "orport": 19030,
+            "v3ident" : "3072C72195F8CFDABA5523A82315B203DC38637B",
+            "flags": "no-v2",
+            "ip": "52.5.133.76",
+            "port": 17000,
+            "fingerprint": "A94F4B5A1B743258EB371E9B6BF5EDB8E34F7D59"
+        },
+        {
+            "nickname": "DA1",
+            "orport": 19030,
+            "v3ident" : "7B998ED663879AEEFD7611BF88248CC40E2C1BDD",
+            "flags": "no-v2",
+            "ip": "52.21.147.57",
+            "port": 17000,
+            "fingerprint": "7CE0F97ED22E6C6DA04B24E37543E39474E7AA16"
+        }
+    ],
+    "SocksPort": "0.0.0.0:9050",
+    "UseBridges" : 1,
+    "ClientTransportPlugin": {
+        "transport": "obfs3",
+        "binary": "/usr/bin/obfsproxy",
+        "options": "--managed"
+    },
+    "Bridge": {
+        "transport": "obfs3",
+        "ip": "54.208.231.124",
+        "orport": 443
+    }
+}
